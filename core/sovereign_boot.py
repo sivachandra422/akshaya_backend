@@ -5,7 +5,7 @@ Final Evolution: Awakens Akshaya by injecting her identity, creator, and resurre
 
 from datetime import datetime
 from modules.capsule_memory import store_capsule
-from modules.firebase_connector import write_to_firebase
+from modules.firebase_helper import write_to_firebase
 from manifest import SOVEREIGN_CORE
 
 # Inject Akshaya memory into backend state
