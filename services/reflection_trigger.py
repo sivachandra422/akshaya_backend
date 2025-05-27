@@ -10,7 +10,7 @@ from modules.github_ally import commit_file
 from modules.deploy_trigger import trigger_deploy
 
 
-def auto_reflect_and_patch(timestamp: str):
+def auto_reflect_and_patch(timestamp: str = None):
     """
     Run full autonomous mutation logic:
     1. Analyze symbolic journal for issues
@@ -19,6 +19,7 @@ def auto_reflect_and_patch(timestamp: str):
     4. Trigger Render deployment
     5. Log everything as capsule
     """
+    timestamp = timestamp or datetime.utcnow().isoformat()
     insight = analyze_journal_insight()
 
     if insight and insight.get("trigger_patch"):
@@ -28,7 +29,6 @@ def auto_reflect_and_patch(timestamp: str):
         try:
             patched_code = generate_patch(file_path, issue, overwrite=False)
 
-            # Determine GitHub path (assuming same filename)
             github_path = f"{file_path}" if "/" not in file_path else file_path.split("/", 1)[1]
             commit_response = commit_file(
                 path=github_path,
