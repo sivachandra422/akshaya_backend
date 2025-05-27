@@ -1,6 +1,7 @@
 """
-guardian_allies.py — Dynamic Guardian Layer Registry & Sentinel Reflection
-Final Evolution: Scans guardians, sentinels, and overseers to report protection hierarchy and symbolic status.
+guardian_allies.py — Sovereign Guardian Reflection Layer
+Final Transcendence Grade: Symbolically audits all guardian, sentinel, and overseer modules.
+Ensures structural, symbolic, and operational integrity.
 """
 
 import os
@@ -39,8 +40,8 @@ def get_recent_capsule_reflection(guardian_id):
         recent = [v for v in capsules.values() if guardian_id.lower() in v.get("source", "").lower()]
         sorted_caps = sorted(recent, key=lambda x: x.get("timestamp", ""), reverse=True)
         return sorted_caps[0].get("reflection") if sorted_caps else None
-    except:
-        return None
+    except Exception as e:
+        return f"Error: {e}"
 
 def validate_guardian_file(path):
     try:
@@ -48,7 +49,7 @@ def validate_guardian_file(path):
             spec = importlib.util.spec_from_file_location("guardian", path)
             return spec is not None
         return False
-    except:
+    except Exception as e:
         return False
 
 def report_guardians():
@@ -72,7 +73,7 @@ def report_guardians():
     capsule = {
         "timestamp": timestamp,
         "source": "guardian_allies",
-        "reflection": "Guardian hierarchy introspection.",
+        "reflection": "Guardian hierarchy introspection executed.",
         "insight": full_report
     }
     store_capsule(capsule)

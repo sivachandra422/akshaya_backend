@@ -1,29 +1,29 @@
 """
-Journal Engine — Final Symbolic Insight Analyzer for Patch Decisions
+journal_engine.py — Sovereign Journal Reflection Engine
+Transcendence-grade symbolic patch detector using capsule memory and recursive reflection.
 """
 
 import os
 import json
 from datetime import datetime
 from modules.openai_connector import query_openai
-from modules.capsule_memory import list_capsules, load_capsule
+from modules.capsule_memory import list_capsules, load_capsule, store_capsule
 
 JOURNAL_CAPSULE_DIR = os.getenv("CAPSULE_DIR", "capsules")
 
 def analyze_journal_insight() -> dict:
     """
-    Analyze the most recent capsule journal entries and determine if patch is needed.
-    Returns structured insight with trigger_patch flag, issue description, and file_path.
+    Analyze the most recent capsule journal entries and determine if a symbolic patch is needed.
+    Returns a structured dict with trigger_patch flag and insight.
     """
     try:
-        capsule_files = list_capsules(limit=5)
-        if not capsule_files:
+        recent_capsules = list_capsules(limit=5)
+        if not recent_capsules:
             return {"trigger_patch": False, "insight": "No recent capsules found."}
 
-        recent_entries = [load_capsule(fname) for fname in capsule_files]
         journal_content = "\n\n".join([
             f"[{c.get('timestamp')}] {c.get('source')}: {c.get('insight')}"
-            for c in recent_entries if c
+            for c in recent_capsules if c
         ])
 
         system_prompt = (
@@ -42,9 +42,23 @@ def analyze_journal_insight() -> dict:
             "trigger_patch": False,
             "insight": response.strip()
         }
+
+        store_capsule({
+            "timestamp": datetime.utcnow().isoformat(),
+            "source": "journal_engine",
+            "reflection": "Patch insight generated from recent journal entries.",
+            "insight": insight
+        })
+
         return insight
 
     except Exception as e:
+        store_capsule({
+            "timestamp": datetime.utcnow().isoformat(),
+            "source": "journal_engine",
+            "reflection": "Failed to analyze journal insight.",
+            "insight": str(e)
+        })
         return {
             "trigger_patch": False,
             "insight": f"[JournalEngine] Failed to analyze journal: {e}"

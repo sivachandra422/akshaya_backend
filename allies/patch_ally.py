@@ -1,6 +1,6 @@
 """
-patch_ally.py — Autonomous Patch Execution & Validation Ally
-Final Evolution: Detects file anomalies, invokes patch_forge, validates results, and logs capsule reflections.
+patch_ally.py — Autonomous Patch Ally (Transcendence Grade)
+Detects symbolic anomalies, triggers patch forge, logs reflective capsules with patch metadata.
 """
 
 import os
@@ -15,8 +15,11 @@ TARGET_MODULES = [
     "autonomy_loop.py"
 ]
 
-# Dummy validator to simulate static issue detection (can be extended)
 def scan_for_anomalies(file_path):
+    """
+    Symbolic anomaly detector. Looks for outdated patterns or TODOs in source.
+    Can be extended with GPT validation or syntax diff in future.
+    """
     try:
         with open(file_path, "r") as f:
             code = f.read()
@@ -26,8 +29,11 @@ def scan_for_anomalies(file_path):
         return f"Error reading {file_path}: {str(e)}"
     return None
 
-# Core autonomous patch loop
 def run_patch_ally():
+    """
+    Executes symbolic patch scan and reflection logic.
+    Returns full patch report or null if no action was needed.
+    """
     timestamp = datetime.utcnow().isoformat()
     patched = []
 
@@ -41,19 +47,11 @@ def run_patch_ally():
             )
             patched.append({"file": path, "result": response})
 
-    if patched:
-        store_capsule({
-            "timestamp": timestamp,
-            "source": "patch_ally",
-            "reflection": "Autonomous patch cycle triggered.",
-            "insight": patched
-        })
-    else:
-        store_capsule({
-            "timestamp": timestamp,
-            "source": "patch_ally",
-            "reflection": "No patch needed.",
-            "insight": {"checked_files": TARGET_MODULES}
-        })
-
+    capsule = {
+        "timestamp": timestamp,
+        "source": "patch_ally",
+        "reflection": "Autonomous patch cycle triggered." if patched else "No patch needed.",
+        "insight": patched if patched else {"checked_files": TARGET_MODULES}
+    }
+    store_capsule(capsule)
     return patched

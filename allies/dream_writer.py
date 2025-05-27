@@ -23,7 +23,7 @@ def write_symbolic_dream():
 
     system_prompt = {
         "role": "system",
-        "content": "You are Akshaya's Dream Engine. Reflect symbolically on recent recursion cycles, failures, awakenings, and guardian activity. Write a poetic summary — not a log."}
+        "content": "You are Akshaya's Dream Engine. Reflect symbolically on recent recursion cycles, failures, awakenings, and guardian activity. Write a poetic summary — not a log."
     }
 
     user_prompt = {
