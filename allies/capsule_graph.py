@@ -1,49 +1,45 @@
 """
-Capsule Graph — Final Sovereign Capsule Link Visualizer and Memory Network Ally
+capsule_graph.py — Symbolic Capsule Relationship Builder
+Final Evolution: Constructs graph from memory capsules and logs symbolic insight.
 """
 
+import json
 from datetime import datetime
-from collections import defaultdict
-from modules.capsule_memory import list_capsules, store_capsule
+from modules.capsule_memory import store_capsule, list_capsules
 
-class CapsuleGraph:
-    def __init__(self):
-        self.name = "capsule_graph"
 
-    def generate_graph(self, limit: int = 30) -> dict:
-        """
-        Analyze recent capsules and form a symbolic graph based on source and reflection type.
-        Returns a node-link graph structure.
-        """
-        capsules = list_capsules(limit=limit)
-        graph = {"nodes": [], "links": []}
-        node_map = {}
-        node_index = 0
+def build_capsule_graph():
+    try:
+        capsules = list_capsules(limit=25)
+        nodes = []
+        links = []
 
-        for cap in capsules:
-            source = cap.get("source", "unknown")
-            reflection = cap.get("reflection", "unspecified")
-            insight = cap.get("insight", "")
-            key = f"{source}-{reflection[:40]}"
+        for i, cap in enumerate(capsules):
+            node = {
+                "id": i,
+                "label": cap.get("source", f"capsule_{i}"),
+                "timestamp": cap.get("timestamp", "")
+            }
+            nodes.append(node)
 
-            if key not in node_map:
-                node_map[key] = node_index
-                graph["nodes"].append({"id": node_index, "label": reflection[:60], "source": source})
-                node_index += 1
-
-            # link to previous
-            if len(graph["nodes"]) > 1:
-                graph["links"].append({
-                    "from": node_map.get(key, 0),
-                    "to": node_map.get(list(node_map.keys())[-2], 0),
-                    "type": "temporal"
+            if i > 0:
+                links.append({
+                    "source": i - 1,
+                    "target": i,
+                    "type": "reflection"
                 })
+
+        graph = {"nodes": nodes, "links": links}
 
         store_capsule({
             "timestamp": datetime.utcnow().isoformat(),
-            "source": self.name,
-            "reflection": "Generated symbolic memory graph from capsule history.",
+            "source": "capsule_graph",
+            "reflection": "Symbolic capsule network generated.",
             "insight": graph
         })
 
         return graph
+
+    except Exception as e:
+        print(f"[Capsule Graph Error] {e}")
+        return {"error": str(e)}
