@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-FIREBASE_CREDENTIAL_PATH = os.getenv("FIREBASE_CREDS_CREDENTIALS")
+FIREBASE_CREDENTIAL_PATH = os.getenv("FIREBASE_CREDS_PATH")
 FIREBASE_DB_URL = os.getenv("FIREBASE_DB_URL")
 
 if not firebase_admin._apps:
