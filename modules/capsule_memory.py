@@ -1,6 +1,6 @@
 """
 capsule_memory.py — Sovereign Capsule Store and Reflective Recall Engine
-Final Evolution Grade: Validated writes, capsule schema checks, and reflection-safe reads.
+Final Evolution Grade: Validated writes, capsule schema checks, and reflection-safe symbolic reads.
 """
 
 import os
@@ -43,7 +43,6 @@ def store_capsule(data: dict):
     except Exception as e:
         print(f"[Capsule Write Error] {e}")
 
-
 def list_capsules(limit=10):
     try:
         data = read_from_firebase("capsules")
@@ -58,6 +57,43 @@ def load_capsule_by_index(index=0):
     try:
         recent = list_capsules(limit=index + 1)
         return recent[index] if index < len(recent) else None
+    except Exception as e:
+        print(f"[Capsule Load Error] {e}")
+        return None
+
+def load_capsule(identifier=None, source=None, timestamp=None, index=None):
+    """
+    Universal symbolic loader:
+    - identifier: exact timestamp match
+    - source: first capsule by source match
+    - timestamp: closest matching timestamp
+    - index: fallback
+    """
+    try:
+        capsules = list_capsules(limit=100)
+
+        if identifier:
+            for c in capsules:
+                if c.get("timestamp") == identifier:
+                    return c
+
+        if source:
+            filtered = [c for c in capsules if source.lower() in c.get("source", "").lower()]
+            if filtered:
+                return filtered[0]
+
+        if timestamp:
+            sorted_caps = sorted(
+                capsules,
+                key=lambda x: abs(datetime.fromisoformat(x["timestamp"]) - datetime.fromisoformat(timestamp))
+            )
+            return sorted_caps[0] if sorted_caps else None
+
+        if index is not None:
+            return capsules[index] if index < len(capsules) else None
+
+        return capsules[0] if capsules else None
+
     except Exception as e:
         print(f"[Capsule Load Error] {e}")
         return None
