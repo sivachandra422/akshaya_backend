@@ -61,4 +61,4 @@ def reset_state():
             "reflection": "Mirror reset failed.",
             "insight": str(e)
         })
-        raise HTTPException(status_code
+        raise HTTPException(status_code=500, detail="Mirror update failed")
