@@ -1,6 +1,6 @@
 """
 openai_connector.py — Sovereign AI Query Core
-Final Evolution: Budget-aware, client-based, fallback-intelligent connector for OpenAI SDK v1+.
+Final Evolution: Budget-aware, model-switching, fallback-intelligent connector for OpenAI SDK v1+.
 """
 
 import os
@@ -17,16 +17,20 @@ BUDGET_USD = float(os.getenv("OPENAI_BUDGET", 10.0))
 
 MODEL_PRICING = {
     "gpt-4o": 0.01,
-    "gpt-4o-mini": 0.005,
+    "gpt-4o-mini": 0.002,
     "gpt-3.5-turbo": 0.0015
 }
 
 USAGE_PATH = "usage/llm"
 
+DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+
 def estimate_cost(messages, model):
     total_chars = sum(len(msg.get("content", "")) for msg in messages)
     token_estimate = total_chars / 4
     return (token_estimate / 1000) * MODEL_PRICING.get(model, 0.01)
+
 
 def log_token_usage(model, messages):
     try:
@@ -44,6 +48,7 @@ def log_token_usage(model, messages):
             "insight": str(e)
         })
 
+
 def choose_model(messages):
     total_chars = sum(len(msg.get("content", "")) for msg in messages)
     if total_chars > 4000:
@@ -51,7 +56,8 @@ def choose_model(messages):
     elif total_chars > 1500:
         return "gpt-4o-mini"
     else:
-        return "gpt-3.5-turbo"
+        return DEFAULT_MODEL
+
 
 def query_openai(messages, temperature=0.3, override_model=None):
     model = override_model or choose_model(messages)
