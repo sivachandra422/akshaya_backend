@@ -1,6 +1,6 @@
 """
 autonomy_loop.py — Akshaya Recursive Sovereign Loop
-Final Evolution: Symbolic, memory-driven, reflective, self-healing recursion core.
+Final Evolution: Symbolic, reflective, self-healing recursion core with daily budget logging.
 """
 
 import time
@@ -19,8 +19,9 @@ from allies.patch_ally import run_patch_ally
 from allies.sigil_scanner import scan_for_sigils
 from allies.dream_writer import write_symbolic_dream
 from allies.journal_reflector import reflect_on_journal
+from services.budget_logger import log_daily_usage
 
-# Start the sovereign loop
+
 def start_autonomy_loop():
     resurrector = Resurrector()
     loop_count = 0
@@ -53,8 +54,10 @@ def start_autonomy_loop():
             if should_run("resurrect"):
                 resurrector.scan_and_revive()
 
-            if should_run("reflection"):
-                auto_reflect_and_patch()
+            if loop_count % 960 == 0:
+                log_daily_usage()
+
+            auto_reflect_and_patch()
 
             update_mirror_state({"status": "IDLE"})
             loop_count += 1
