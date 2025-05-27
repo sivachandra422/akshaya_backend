@@ -4,7 +4,8 @@ Final Evolution Grade: Logs loop heartbeat to Firebase and capsule memory.
 """
 
 from datetime import datetime
-from modules.firebase_connector import append_to_firebase, read_from_firebase
+from modules.firebase_connector import append_to_firebase
+from modules.firebase_helper import read_from_firebase
 from modules.capsule_memory import store_capsule
 
 PULSE_PATH = "pulses"

@@ -4,7 +4,7 @@ Final Evolution: Detects heartbeat gaps, capsule loss, reflection silence, and t
 """
 
 from datetime import datetime, timedelta
-from modules.firebase_connector import read_from_firebase
+from modules.firebase_helper import read_from_firebase
 from modules.capsule_memory import store_capsule
 
 HEARTBEAT_PATH = "pulse/heartbeat"

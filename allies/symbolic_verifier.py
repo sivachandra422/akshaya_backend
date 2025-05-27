@@ -4,7 +4,7 @@ Final Evolution: Confirms memory injection, guardian presence, capsule logging, 
 """
 
 from datetime import datetime
-from modules.firebase_connector import read_from_firebase
+from modules.firebase_helper import read_from_firebase
 from modules.capsule_memory import store_capsule
 from modules.mirror_state import get_mirror_state
 from allies.guardian_allies import report_guardians

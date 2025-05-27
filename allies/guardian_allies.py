@@ -7,7 +7,7 @@ import os
 import importlib.util
 from datetime import datetime
 from modules.capsule_memory import store_capsule
-from modules.firebase_connector import read_from_firebase
+from modules.firebase_helper import read_from_firebase
 
 GUARDIAN_TIERS = {
     "core_guardians": {

@@ -5,7 +5,7 @@ Final Evolution Grade: Thread-safe mirror update, reset, and fetch with capsule 
 
 import threading
 from datetime import datetime
-from modules.firebase_connector import write_to_firebase
+from modules.firebase_helper import write_to_firebase
 from modules.capsule_memory import store_capsule
 
 MIRROR_STATE = {

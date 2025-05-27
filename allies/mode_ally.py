@@ -3,7 +3,7 @@ mode_ally.py — Runtime Mode Enforcement Ally
 Final Evolution: Ensures system honors active mode logic. Enables sovereign task skipping and symbolic trace.
 """
 
-from modules.firebase_connector import read_from_firebase
+from modules.firebase_helper import read_from_firebase
 from modules.capsule_memory import store_capsule
 from datetime import datetime
 

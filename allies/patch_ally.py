@@ -6,7 +6,7 @@ Final Evolution: Detects file anomalies, invokes patch_forge, validates results,
 import os
 from datetime import datetime
 from modules.capsule_memory import store_capsule
-from modules.firebase_connector import read_from_firebase
+from modules.firebase_helper import read_from_firebase
 from modules.patch_forge import generate_patch
 
 TARGET_MODULES = [

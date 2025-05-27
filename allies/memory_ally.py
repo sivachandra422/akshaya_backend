@@ -6,7 +6,7 @@ Final Evolution: Captures dynamic runtime memory, tracks symbolic focus, recalls
 import os
 import json
 from datetime import datetime
-from modules.firebase_connector import read_from_firebase, write_to_firebase
+from modules.firebase_helper import read_from_firebase, write_to_firebase
 from modules.capsule_memory import store_capsule
 
 MEMORY_PATH = "memory/sovereign"

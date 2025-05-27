@@ -4,7 +4,7 @@ Final Evolution: Tracks OpenAI API spend, triggers capsule alerts, and changes s
 """
 
 from datetime import datetime
-from modules.firebase_connector import read_from_firebase, write_to_firebase
+from modules.firebase_helper import read_from_firebase, write_to_firebase
 from modules.capsule_memory import store_capsule
 
 BUDGET_LIMIT = float(os.getenv("OPENAI_BUDGET", 10.0))
