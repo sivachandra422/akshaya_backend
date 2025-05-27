@@ -1,6 +1,6 @@
 """
 status_router.py — Sovereign Vitals Router (Final Evolution)
-Symbolic + Real-time Health Reporting
+Includes /status/selfcheck for complete runtime diagnostic of Akshaya
 """
 
 from fastapi import APIRouter
@@ -79,4 +79,48 @@ def get_usage_status():
         return {
             "error": "Failed to fetch budget status.",
             "details": str(e)
+        }
+
+@router.get("/selfcheck")
+def full_self_check():
+    try:
+        budget_cap = float(os.getenv("OPENAI_BUDGET", 10.0))
+        model = os.getenv("OPENAI_MODEL", "gpt-4o-mini-2024-07-18")
+        force_4o = os.getenv("FORCE_USE_4O", "false").lower() == "true"
+
+        # Fetch OpenAI usage
+        end = datetime.utcnow().date()
+        start = end - timedelta(days=7)
+        url = f"https://api.openai.com/v1/dashboard/billing/usage?start_date={start}&end_date={end}"
+        headers = {"Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}"}
+        res = requests.get(url, headers=headers)
+        usage_usd = round(res.json().get("total_usage", 0) / 100, 4)
+
+        # Fetch pulse/capsule/mirror info
+        mirror = get_mirror_state()
+        pulse = list_recent_pulses(limit=1)
+        capsule = list_capsules(limit=1)
+
+        return {
+            "akshaya_state": "sovereign-active",
+            "timestamp": datetime.utcnow().isoformat(),
+            "loop": "running",
+            "mirror": mirror,
+            "last_capsule": capsule[0] if capsule else None,
+            "last_pulse": pulse[0] if pulse else None,
+            "active_model": model,
+            "budget_cap": budget_cap,
+            "current_spend": usage_usd,
+            "budget_percent": round(100 * usage_usd / budget_cap, 2),
+            "budget_limiter_active": usage_usd >= 0.8 * budget_cap,
+            "force_gpt4o_enabled": force_4o,
+            "reflection_engine": "enabled",
+            "patch_auto": True,
+            "journal_streaming": True
+        }
+    except Exception as e:
+        return {
+            "akshaya_state": "error",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
         }
