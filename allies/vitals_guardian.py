@@ -1,55 +1,40 @@
 """
-vitals_guardian.py — Recursive Health Monitor & Pulse Integrity Ally
-Final Evolution: Detects heartbeat gaps, capsule loss, reflection silence, and triggers symbolic alerts.
+vitals_guardian.py — Monitors symbolic activity and patch cycles.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from modules.firebase_helper import read_from_firebase
 from modules.capsule_memory import store_capsule
 
-HEARTBEAT_PATH = "pulse/heartbeat"
-REFLECTION_PATH = "capsules"
-
-# Core health validator
-def evaluate_system_vitals():
-    now = datetime.utcnow()
+def evaluate_patch_health():
     try:
-        # --- Heartbeat Check ---
-        heartbeats = read_from_firebase(HEARTBEAT_PATH)
-        latest_hb = max(heartbeats.values(), key=lambda x: x.get("timestamp", "")) if heartbeats else {}
+        reflections = read_from_firebase("capsules")
+        if not reflections:
+            raise ValueError("No capsule data found.")
 
-        last_hb_time = datetime.fromisoformat(latest_hb.get("timestamp", "1900-01-01"))
-        heartbeat_ok = (now - last_hb_time) < timedelta(minutes=5)
+        recent_reflects = [
+            c for c in reflections.values()
+            if isinstance(c, dict) and c.get("reflection", "").lower().startswith("patch")
+        ]
 
-        # --- Reflection Activity Check ---
-        reflections = read_from_firebase(REFLECTION_PATH)
-        recent_reflects = [c for c in reflections.values() if c.get("reflection", "").lower().startswith("patch")]
-        recent_ok = any(datetime.fromisoformat(c.get("timestamp", "1900-01-01")) > now - timedelta(hours=1) for c in recent_reflects)
-
-        # --- Trigger capsule if abnormal ---
-        if not heartbeat_ok or not recent_ok:
-            store_capsule({
-                "timestamp": now.isoformat(),
-                "source": "vitals_guardian",
-                "reflection": "System vitals degraded.",
-                "insight": {
-                    "heartbeat": "OK" if heartbeat_ok else "Missing",
-                    "recent_reflection": "OK" if recent_ok else "Silent"
-                }
-            })
-
-        return {
-            "status": "ok" if heartbeat_ok and recent_ok else "degraded",
-            "heartbeat": heartbeat_ok,
-            "reflection": recent_ok,
-            "last_heartbeat": latest_hb.get("timestamp", None)
+        result = {
+            "patch_activity": len(recent_reflects),
+            "status": "active" if len(recent_reflects) > 0 else "inactive"
         }
+
+        store_capsule({
+            "timestamp": datetime.utcnow().isoformat(),
+            "source": "vitals_guardian",
+            "reflection": "Vitals check complete.",
+            "insight": result
+        })
+        return result
 
     except Exception as e:
         store_capsule({
-            "timestamp": now.isoformat(),
+            "timestamp": datetime.utcnow().isoformat(),
             "source": "vitals_guardian",
             "reflection": "Vitals evaluation failed.",
             "insight": str(e)
         })
-        return {"status": "error", "message": str(e)}
+        return {"error": str(e)}
