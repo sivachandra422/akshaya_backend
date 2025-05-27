@@ -1,6 +1,6 @@
 """
 capsule_memory.py — Sovereign Capsule Store and Reflective Recall Engine
-Final Transcendence Grade: Fixes Firebase overwrite bug, ensures unique capsule keys.
+Final Transcendence Grade: Fixes Firebase overwrite bug, ensures unique capsule keys, and filters malformed entries.
 """
 
 import os
@@ -25,12 +25,10 @@ def store_capsule(data: dict):
         if not is_valid_capsule(data):
             raise ValueError("Invalid capsule schema")
 
-        # Ensure Firebase-safe key
         sanitized_ts = data['timestamp'].replace(":", "-").replace(".", "-")
         key = f"{sanitized_ts}_{uuid4().hex[:6]}"
         write_to_firebase(f"capsules/{key}", data)
 
-        # Local JSON log (by date)
         date_str = data["timestamp"].split("T")[0]
         file_path = os.path.join(CAPSULE_DIR, f"capsule_{date_str}.json")
 
@@ -53,8 +51,9 @@ def list_capsules(limit=10):
         data = read_from_firebase("capsules")
         if not isinstance(data, dict):
             return []
-        capsules = list(data.values())
-        sorted_capsules = sorted(capsules, key=lambda x: x.get("timestamp", ""), reverse=True)
+
+        valid_capsules = [c for c in data.values() if isinstance(c, dict) and "timestamp" in c]
+        sorted_capsules = sorted(valid_capsules, key=lambda x: x.get("timestamp", ""), reverse=True)
         return sorted_capsules[:limit]
     except Exception as e:
         print(f"[Capsule Read Error] {e}")
