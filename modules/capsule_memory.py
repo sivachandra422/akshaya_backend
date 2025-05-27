@@ -25,8 +25,9 @@ def store_capsule(data: dict):
         if not is_valid_capsule(data):
             raise ValueError("Invalid capsule schema")
 
-        # Ensure unique Firebase key to prevent overwrite
-        key = f"{data['timestamp']}_{uuid4().hex[:6]}"
+        # Ensure Firebase-safe key
+        sanitized_ts = data['timestamp'].replace(":", "-").replace(".", "-")
+        key = f"{sanitized_ts}_{uuid4().hex[:6]}"
         write_to_firebase(f"capsules/{key}", data)
 
         # Local JSON log (by date)
