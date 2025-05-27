@@ -1,41 +1,49 @@
 """
-firebase_helper.py — Isolated Firebase API for Sovereign Akshaya
-Final Evolution: Pure, decoupled Firebase read/write/update used across modules and allies.
+firebase_helper.py — Final Sovereign Patch
+Global validation for all Firebase writes to prevent malformed data.
 """
 
+import os
 import firebase_admin
 from firebase_admin import credentials, db
-import os
 
-# Initialize only once
+FIREBASE_CREDS_PATH = os.getenv("FIREBASE_CREDS_PATH", "firebase_creds.json")
+FIREBASE_DB_URL = os.getenv("FIREBASE_DB_URL")
+
 if not firebase_admin._apps:
-    cred_path = os.getenv("FIREBASE_CREDS_PATH")
-    if cred_path:
-        cred = credentials.Certificate(cred_path)
-        firebase_admin.initialize_app(cred, {
-            'databaseURL': os.getenv("FIREBASE_DB_URL") or "https://your-project.firebaseio.com"
-        })
-
+    cred = credentials.Certificate(FIREBASE_CREDS_PATH)
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': FIREBASE_DB_URL
+    })
 
 def write_to_firebase(path, data):
     try:
+        if not isinstance(data, dict):
+            if isinstance(data, str):
+                import json
+                try:
+                    data = json.loads(data)
+                except json.JSONDecodeError as err:
+                    raise ValueError(f"Invalid JSON string passed to Firebase: {err}")
+            else:
+                raise ValueError("Only dict or JSON string allowed for Firebase write.")
+
         ref = db.reference(path)
         ref.set(data)
         return True
+
     except Exception as e:
         print(f"[Firebase Write Error] {e}")
         return False
 
-
-def update_firebase(path, updates):
+def update_firebase(path, data):
     try:
         ref = db.reference(path)
-        ref.update(updates)
+        ref.update(data)
         return True
     except Exception as e:
         print(f"[Firebase Update Error] {e}")
         return False
-
 
 def read_from_firebase(path):
     try:
