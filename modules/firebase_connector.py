@@ -9,7 +9,8 @@ from modules.firebase_helper import read_from_firebase, update_firebase
 def append_to_firebase(path: str, data: dict):
     try:
         timestamp = datetime.utcnow().isoformat()
-        payload = {timestamp: data}
+        safe_key = timestamp.replace(":", "-").replace(".", "-")
+        payload = {safe_key: data}
         update_firebase(path, payload)
         return True
     except Exception as e:
@@ -25,7 +26,8 @@ def read_all_from_firebase(path: str):
 
 def update_field(path: str, key: str, value):
     try:
-        update_firebase(path, {key: value})
+        safe_key = str(key).replace(":", "-").replace(".", "-")
+        update_firebase(path, {safe_key: value})
         return True
     except Exception as e:
         print(f"[Firebase Field Update Error] {e}")
