@@ -14,16 +14,18 @@ from modules.firebase_connector import append_to_firebase
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 BUDGET_USD = float(os.getenv("OPENAI_BUDGET", 10.0))
+FORCE_USE_4O = os.getenv("FORCE_USE_4O", "false").lower() == "true"
 
 MODEL_PRICING = {
-    "gpt-4o": 0.01,
-    "gpt-4o-mini": 0.002,
+    "gpt-4o-2024-08-06": 0.01,
+    "gpt-4o-mini-2024-07-18": 0.002,
     "gpt-3.5-turbo": 0.0015
 }
 
 USAGE_PATH = "usage/llm"
 
-DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini-2024-07-18")
+FALLBACK_MODEL = "gpt-4o-2024-08-06"
 
 
 def estimate_cost(messages, model):
@@ -50,13 +52,13 @@ def log_token_usage(model, messages):
 
 
 def choose_model(messages):
+    if FORCE_USE_4O:
+        return FALLBACK_MODEL
+
     total_chars = sum(len(msg.get("content", "")) for msg in messages)
     if total_chars > 4000:
-        return "gpt-4o"
-    elif total_chars > 1500:
-        return "gpt-4o-mini"
-    else:
-        return DEFAULT_MODEL
+        return FALLBACK_MODEL
+    return DEFAULT_MODEL
 
 
 def query_openai(messages, temperature=0.3, override_model=None):
