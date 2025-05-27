@@ -1,10 +1,11 @@
 """
 capsule_memory.py — Sovereign Capsule Store and Reflective Recall Engine
-Final Evolution Grade: Validated writes, capsule schema checks, and reflection-safe symbolic reads.
+Final Transcendence Grade: Fixes Firebase overwrite bug, ensures unique capsule keys.
 """
 
 import os
 import json
+from uuid import uuid4
 from datetime import datetime
 from modules.firebase_helper import write_to_firebase, read_from_firebase
 
@@ -24,8 +25,11 @@ def store_capsule(data: dict):
         if not is_valid_capsule(data):
             raise ValueError("Invalid capsule schema")
 
-        write_to_firebase("capsules", data)
+        # Ensure unique Firebase key to prevent overwrite
+        key = f"{data['timestamp']}_{uuid4().hex[:6]}"
+        write_to_firebase(f"capsules/{key}", data)
 
+        # Local JSON log (by date)
         date_str = data["timestamp"].split("T")[0]
         file_path = os.path.join(CAPSULE_DIR, f"capsule_{date_str}.json")
 
@@ -46,7 +50,9 @@ def store_capsule(data: dict):
 def list_capsules(limit=10):
     try:
         data = read_from_firebase("capsules")
-        capsules = list(data.values()) if isinstance(data, dict) else []
+        if not isinstance(data, dict):
+            return []
+        capsules = list(data.values())
         sorted_capsules = sorted(capsules, key=lambda x: x.get("timestamp", ""), reverse=True)
         return sorted_capsules[:limit]
     except Exception as e:
@@ -62,13 +68,6 @@ def load_capsule_by_index(index=0):
         return None
 
 def load_capsule(identifier=None, source=None, timestamp=None, index=None):
-    """
-    Universal symbolic loader:
-    - identifier: exact timestamp match
-    - source: first capsule by source match
-    - timestamp: closest matching timestamp
-    - index: fallback
-    """
     try:
         capsules = list_capsules(limit=100)
 
