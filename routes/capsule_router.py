@@ -52,4 +52,4 @@ def view_capsule(index: int):
             "reflection": "Capsule view failed.",
             "insight": str(e)
         })
-        raise HTTPException(status_code=500, detail="Capsule view failed.")etail=f"Error retrieving capsule: {e}")
+        raise HTTPException(status_code=500, detail=f"Capsule view failed. Error retrieving capsule: {e}")
