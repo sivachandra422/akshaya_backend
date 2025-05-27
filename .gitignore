@@ -1,0 +1,12 @@
+# .gitignore — Akshaya Sovereign Backend
+__pycache__/
+*.pyc
+.env
+secrets/
+capsules/*.json
+capsules/pulse_log/
+capsules/transcendence_keys/
+modules/__pycache__/
+generated/
+venv/
+firebase_creds.json
