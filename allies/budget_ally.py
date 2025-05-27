@@ -2,7 +2,7 @@
 budget_ally.py — Sovereign Budget Monitor and Alert Ally
 Final Evolution: Tracks OpenAI API spend, triggers capsule alerts, and changes system mode adaptively.
 """
-
+import os
 from datetime import datetime
 from modules.firebase_helper import read_from_firebase, write_to_firebase
 from modules.capsule_memory import store_capsule
