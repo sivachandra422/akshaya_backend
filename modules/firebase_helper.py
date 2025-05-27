@@ -38,9 +38,20 @@ def write_to_firebase(path, data):
 
 def update_firebase(path, data):
     try:
+        if not isinstance(data, dict):
+            if isinstance(data, str):
+                import json
+                try:
+                    data = json.loads(data)
+                except json.JSONDecodeError as err:
+                    raise ValueError(f"Invalid JSON string passed to Firebase: {err}")
+            else:
+                raise ValueError("Only dict or JSON string allowed for Firebase update.")
+
         ref = db.reference(path)
         ref.update(data)
         return True
+
     except Exception as e:
         print(f"[Firebase Update Error] {e}")
         return False
