@@ -1,12 +1,13 @@
 """
 openai_connector.py — Sovereign AI Query Core
-Final Evolution: Budget-aware, model-switching, fallback-intelligent connector for OpenAI SDK v1+.
+Final Evolution: Intelligent fallback, critical handling, model routing, and live billing integration.
 """
 
 import os
 import base64
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+import requests
 from openai import OpenAI
 from modules.capsule_memory import store_capsule
 from modules.firebase_connector import append_to_firebase
@@ -26,6 +27,26 @@ USAGE_PATH = "usage/llm"
 
 DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini-2024-07-18")
 FALLBACK_MODEL = "gpt-4o-2024-08-06"
+
+
+def fetch_actual_spend(days_back=7):
+    try:
+        end_date = datetime.utcnow().date()
+        start_date = end_date - timedelta(days=days_back)
+        url = f"https://api.openai.com/v1/dashboard/billing/usage?start_date={start_date}&end_date={end_date}"
+        headers = {"Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}"}
+        res = requests.get(url, headers=headers)
+        data = res.json()
+        total_cents = data.get("total_usage", 0)
+        return round(total_cents / 100, 4)  # USD
+    except Exception as e:
+        store_capsule({
+            "timestamp": datetime.utcnow().isoformat(),
+            "source": "openai_connector",
+            "reflection": "Failed to fetch OpenAI spend.",
+            "insight": str(e)
+        })
+        return 0.0
 
 
 def estimate_cost(messages, model):
@@ -51,48 +72,54 @@ def log_token_usage(model, messages):
         })
 
 
-def choose_model(messages):
-    if FORCE_USE_4O:
-        return FALLBACK_MODEL
-
-    total_chars = sum(len(msg.get("content", "")) for msg in messages)
-    if total_chars > 4000:
+def choose_model(messages, critical=False):
+    if FORCE_USE_4O or critical:
         return FALLBACK_MODEL
     return DEFAULT_MODEL
 
 
-def query_openai(messages, temperature=0.3, override_model=None):
-    model = override_model or choose_model(messages)
-    try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=temperature
-        )
-        log_token_usage(model, messages)
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        fallback_model = "gpt-3.5-turbo" if model != "gpt-3.5-turbo" else None
-        if fallback_model:
-            try:
-                response = client.chat.completions.create(
-                    model=fallback_model,
-                    messages=messages,
-                    temperature=temperature
-                )
-                log_token_usage(fallback_model, messages)
-                return response.choices[0].message.content.strip()
-            except Exception as fallback_error:
-                store_capsule({
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "source": "openai_connector",
-                    "reflection": "Fallback model failed.",
-                    "insight": str(fallback_error)
-                })
+def query_openai(messages, temperature=0.3, override_model=None, critical=False):
+    current_spend = fetch_actual_spend()
+    if current_spend >= BUDGET_USD:
         store_capsule({
             "timestamp": datetime.utcnow().isoformat(),
             "source": "openai_connector",
-            "reflection": "Primary model failed.",
-            "insight": str(e)
+            "reflection": "Budget exceeded — blocking OpenAI call.",
+            "insight": f"${current_spend} used out of ${BUDGET_USD}"
         })
-        return "[Error: Failed to get response from OpenAI]"
+        return "[Blocked: Budget cap exceeded]"
+
+    model = override_model or choose_model(messages, critical)
+    attempt = 0
+
+    while attempt < 2:
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature
+            )
+            log_token_usage(model, messages)
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            attempt += 1
+            if model != FALLBACK_MODEL and (critical or attempt == 2):
+                model = FALLBACK_MODEL
+                continue
+            elif model == FALLBACK_MODEL:
+                store_capsule({
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "source": "openai_connector",
+                    "reflection": "GPT-4o fallback failed.",
+                    "insight": str(e)
+                })
+                break
+            else:
+                store_capsule({
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "source": "openai_connector",
+                    "reflection": "GPT-mini model failed.",
+                    "insight": str(e)
+                })
+                model = FALLBACK_MODEL
+    return "[Error: Failed to get response from OpenAI]"
