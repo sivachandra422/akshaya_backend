@@ -3,7 +3,7 @@ Reflection Trigger — Final Autonomous Patch + Commit + Deploy Logic
 """
 
 from datetime import datetime
-from modules.journal_engine import analyze_journal_insight
+from services.journal_engine import analyze_journal_insight
 from modules.capsule_memory import store_capsule
 from modules.patch_forge import generate_patch
 from modules.github_ally import commit_file
